@@ -1,9 +1,5 @@
-// FloorPlanGenerator.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 
-//#include "SquarifiedTreemap.hpp"
 #include "Room.h"
 #include "RoomHandler.h"
 
@@ -29,9 +25,20 @@ int main()
     int width = 600, height = 400;
 
     Rectangle container = { width, height };
-    RoomHandler roomHandler = RoomHandler(roomOrder, container);
 
+    RoomHandler roomHandler = RoomHandler(roomOrder, container);
     roomHandler.createRooms();
-    
+
+    // Line segments:
+    // for wall in roomHandler.walls
+    //      for lineSegment in wall.lineSegments
+
+    // for room in roomHandler.getRooms()
+    //     access room.x, room.y, room.width, room.height
+    //     here you can also find room.roomId
+    //          roomId contains: room name (roomId.name), input size
+
+    // house size: roomHandler.houseSize (todo: make a getter)
+
     return 0;
 }

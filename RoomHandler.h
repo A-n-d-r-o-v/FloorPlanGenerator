@@ -15,24 +15,22 @@ class RoomHandler
 public:
 	RoomHandler(std::vector<RoomId> roomTree, Rectangle houseSize);
 	void createRooms();
-	void createWalls();
 
 	std::vector<Wall> walls;
 
 	std::vector<Room> getRooms();
-	std::optional<Room> findLargestRoom(const std::vector<RoomId>& rooms);
+
+	std::optional<Room> findLargestRoom(std::vector<RoomId>& rooms);
 	std::optional<Room> findRoomWithId(RoomId id);
 
 private:
 	std::vector<RoomId> roomTree;
 	void processNodes(std::vector<RoomId>& nodes, std::optional<Room> parent);
-	Rectangle houseSize;
+	Rectangle houseSize; // houseSize.Width, houseSize.Height (I think)
 	std::vector<Room> rooms;
-
-	float wallThickness = 2;
+	std::vector<RoomId> areas;
 
 	void findRoomNeighbors();
-	//void createDoors(std::vector<Room>& nodes);
 };
 
 #endif

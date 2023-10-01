@@ -8,14 +8,6 @@ RoomHandler::RoomHandler(std::vector<RoomId> roomTree, Rectangle houseSize) {
 void RoomHandler::createRooms() {
 	processNodes(this->roomTree, {});
 	findRoomNeighbors();
-	//createDoors(this->rooms); // !! TODO !!
-}
-
-void RoomHandler::createWalls()
-{
-	for (const auto& room : rooms) {
-		
-	}
 }
 
 void RoomHandler::processNodes(std::vector<RoomId>& nodes, std::optional<Room> parent)
@@ -46,6 +38,7 @@ void RoomHandler::processNodes(std::vector<RoomId>& nodes, std::optional<Room> p
 				childrenToVisit.emplace_back(child);
 				idx++;
 			}
+			areas.emplace_back(node);
 		}
 	}
 	// datapoints
@@ -74,12 +67,14 @@ void RoomHandler::processNodes(std::vector<RoomId>& nodes, std::optional<Room> p
 
 void RoomHandler::findRoomNeighbors()
 {
+	this->rooms[0].isConnectedToStart = true;
 	for (auto& room : this->rooms) {
+		room.isVisited = true;
 		if (room.roomId.hasChildren) {
 			continue;
 		}
 		for (auto& other : this->rooms) {
-			if (&room == &other || other.roomId.hasChildren) {
+			if (&room == &other || other.roomId.hasChildren || other.isVisited) {
 				continue;
 			}
 
@@ -98,80 +93,53 @@ void RoomHandler::findRoomNeighbors()
 			float yStart = std::max(room.y, other.y);
 			float yEnd = std::min(room.y + room.height, other.y + other.height);
 
-			walls.emplace_back(Wall(xStart, yStart, xEnd, yEnd));
-
+			bool isDoor = !other.isConnectedToStart;
+			
+			bool hasArea = room.roomId.area != "Default";
+			if (room.roomId.area == other.roomId.area) {
+				if (hasArea) {
+					isDoor = true;
+				}
+			}
+			// Doors to areas: only make a door to the largest child
+			else {
+				RoomId currArea;
+				for (auto& area : this->areas) {
+					if (area.name == other.roomId.area) {
+						currArea = area;
+					}
+				}
+				if (&currArea != nullptr) {
+					auto largestChild = findLargestRoom(currArea.children);
+					if (largestChild.has_value()) {
+						if (other.roomId.name == largestChild.value().roomId.name) {
+							isDoor = true;
+						}
+						else {
+							isDoor = false;
+						}
+					}
+				}				
+			}
+			walls.emplace_back(Wall(xStart, yStart, xEnd, yEnd, isDoor));
+			other.isConnectedToStart = true;
 		}
 	}
 }
-
-/*
-void RoomHandler::createDoors(std::vector<Room>& rooms)
-{
-	std::cout << "I'm alive 1" << std::endl;
-	std::stack<std::vector<RoomId>> childrenToVisit;
-	for (int room_idx = 0; room_idx < rooms.size(); ++room_idx) {
-		for (int next_idx = 0; next_idx < rooms.size(); ++next_idx) {
-			if (next_idx <= room_idx) {
-				continue;
-			}
-			Room room = rooms[room_idx];
-			auto roomNeighbors = rooms[room_idx].getNeighbors();
-			auto& otherRoom = rooms[next_idx];
-			/*
-			if (otherRoom.roomId.hasChildren) {
-				std::cout << "I'm alive 2" << std::endl;
-				childrenToVisit.push(otherRoom.roomId.children);
-				// Largest (TODO: connected?) room among children
-				std::optional<Room> largestChild = findLargestRoom(otherRoom.roomId.children);
-				std::cout << largestChild.has_value() << std::endl;
-				if (largestChild.has_value()) {
-					otherRoom = largestChild.value();
-				}
-				else {
-					continue;
-				}
-				std::cout << "I'm alive 5" << std::endl;
-			}
-			
-			if (true) {}
-			else {
-				// Other is a neighbor to room
-				bool isNeighbor = false;
-				for (auto& nbor : roomNeighbors) {
-					if (&otherRoom == &nbor) {
-						isNeighbor = true;
-						break;
-					}
-				}
-
-				if (isNeighbor) {
-					rooms[room_idx].addConnectedNeighbor(otherRoom);
-					otherRoom.isConnectedToStart = true;
-				}
-			}
-		}
-	}
-	while (!childrenToVisit.empty()) {
-		std::vector<Room> asRooms;
-		std::vector<RoomId> next = childrenToVisit.top();
-		childrenToVisit.pop();
-		for (auto& roomId : next) {
-			asRooms.emplace_back(*findRoomWithId(roomId));
-		}
-		createDoors(asRooms);
-	}
-*/
-
 
 std::vector<Room> RoomHandler::getRooms()
 {
 	return this->rooms;
 }
 
-std::optional<Room> RoomHandler::findLargestRoom(const std::vector<RoomId>& rooms) {
+std::optional<Room> RoomHandler::findLargestRoom(std::vector<RoomId>& rooms) {
+	if (rooms.empty()) {
+		return {};
+	}
+
 	RoomId largestRoomId = rooms[0];
 
-	for (const RoomId& roomId : rooms) {
+	for (RoomId& roomId : rooms) {
 		if (roomId.size > largestRoomId.size) {
 			largestRoomId = roomId;
 		}
@@ -179,9 +147,7 @@ std::optional<Room> RoomHandler::findLargestRoom(const std::vector<RoomId>& room
 	std::optional<Room> optionalLargestRoom = findRoomWithId(largestRoomId);
 
 	if (optionalLargestRoom.has_value()) {
-		std::cout << "I'm alive!" << std::endl;
 		Room largestRoom = optionalLargestRoom.value();
-		std::cout << "still!" << std::endl;
 		return largestRoom;
 	}
 	return {};
@@ -189,8 +155,8 @@ std::optional<Room> RoomHandler::findLargestRoom(const std::vector<RoomId>& room
 
 std::optional<Room> RoomHandler::findRoomWithId(RoomId id)
 {
-	for (const auto& room : this->rooms) {
-		if (room.roomId == id) {
+	for (auto& room : this->rooms) {
+		if (room.roomId.name == id.name) {
 			return std::make_optional(room);
 		}
 	}

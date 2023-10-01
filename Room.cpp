@@ -17,15 +17,22 @@ LineSegment::LineSegment(float startX, float startY, float endX, float endY)
 
 // ------------------ Wall
 
-Wall::Wall(float startX, float startY, float endX, float endY)
+Wall::Wall(float startX, float startY, float endX, float endY, bool hasDoor)
 {
 	this->startX = startX;
 	this->startY = startY;
 	this->endX = endX;
 	this->endY = endY;
+	this->hasDoor = hasDoor;
+
+	generateLineSegments();
+}
+
+void Wall::generateLineSegments()
+{
 
 	isHorizontal = startY == endY;
-	
+
 	if (doorSize > length()) {
 		hasDoor = false;
 	}
@@ -34,7 +41,7 @@ Wall::Wall(float startX, float startY, float endX, float endY)
 
 		if (isHorizontal) {
 			float center = (endX - startX) / 2;
-			lineSegments.emplace_back(LineSegment(startX, startY, startX + center - doorSize/2, endY));
+			lineSegments.emplace_back(LineSegment(startX, startY, startX + center - doorSize / 2, endY));
 			lineSegments.emplace_back(LineSegment(startX + center + doorSize / 2, startY, endX, endY));
 		}
 		else {
@@ -88,14 +95,7 @@ Room::Room(float x, float y, float width, float height, RoomId roomId)
 	this->width = width;
 	this->height = height;
 	this->roomId = roomId;
-
 }
-
-void Room::generateWalls()
-{
-
-}
-
 
 void Room::addNeighbor(Room& neighbor)
 {

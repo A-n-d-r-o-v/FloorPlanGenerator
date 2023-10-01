@@ -19,15 +19,16 @@ public:
 struct Wall
 {
 public:
-	Wall(float startX, float startY, float endX, float endY);
+	Wall(float startX, float startY, float endX, float endY, bool hasDoor);
 	float startX, startY;
 	float endX, endY;
+	bool hasDoor;
 
 	std::vector<LineSegment> lineSegments;
+	void generateLineSegments();
 
 	bool isHorizontal = false;
-	bool hasDoor = true;
-	float doorSize = 20;
+	float doorSize = 50;
 private:
 	float length();
 };
@@ -47,7 +48,6 @@ public:
 	std::string area = "Default";
 
 	bool operator==(const RoomId& other) const;
-
 };
 
 struct Room
@@ -66,6 +66,8 @@ struct Room
 	bool isConnectedToStart = false;
 
 	friend std::ostream& operator<<(std::ostream& os, const Room& room);
+
+	bool isVisited = false; // Internal check
 
 private:
 	std::vector<Room> neighbors;
