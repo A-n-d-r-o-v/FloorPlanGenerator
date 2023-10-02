@@ -5,9 +5,12 @@
 
 int main()
 {
+    srand(static_cast <unsigned> (time(0)));
+
     std::vector<RoomId> roomOrder = {
-        RoomId("Living room", 11),
-        RoomId("Kitchen area", 8, {RoomId("Pantry", 2), RoomId("Kitchen", 3), RoomId("Laundry", 1)}),
+        RoomId("Living room", 10),
+        //RoomId("Living area", 11, {RoomId("Living roomArea", 10, {RoomId("Living", 4), RoomId("Dead", 4)}), RoomId("Some room", 3)}),
+        RoomId("Kitchen area", 10, {RoomId("Pantry", 2), RoomId("Kitchen", 3), RoomId("Laundry", 1)}),
         RoomId("Dining room", 6),
         RoomId("Bedroom", 10),
         RoomId("Bathroom", 3)
@@ -28,6 +31,20 @@ int main()
 
     RoomHandler roomHandler = RoomHandler(roomOrder, container);
     roomHandler.createRooms();
+
+    std::cout << "Rooms : [";
+    for (const auto& room : roomHandler.getRooms()) {
+        std::cout << "[" << room.x << ", " << room.y << ", " << room.width << ", " << room.height << "], ";
+    }
+    std::cout << "]" << std::endl << std::endl;
+
+    std::cout << "Walls : [";
+    for (const auto& wall : roomHandler.walls) {
+        for (const auto& lineSeg : wall.lineSegments) {
+            std::cout << "[" << lineSeg.startX << ", " << lineSeg.startY << ", " << lineSeg.endX<< ", " << lineSeg.endY << "], ";
+        }
+    }
+    std::cout << "]" << std::endl << std::endl;
 
     // Line segments:
     // for wall in roomHandler.walls
